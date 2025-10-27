@@ -19,7 +19,6 @@
   "name": "react-app",
   "homepage": "https://skytria.github.io/client_web_chat",
   "scripts": {
-    "build": "react-scripts build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
