@@ -28,3 +28,4 @@ jobs:
       with:
         folder: build
         branch: gh-pages
+        token: ${{ secrets.PAT_TOKEN }}
