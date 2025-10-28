@@ -85,7 +85,7 @@
 }
 
 /* =========================
-   🏖️ CHAT PAGE (YANG BARU & LEBIH KECIL)
+   🏖️ CHAT PAGE (SEDERHANA TANPA EFEK)
 ========================= */
 .chat-page {
   display: flex;
@@ -99,75 +99,14 @@
   padding: 10px;
 }
 
-/* Ocean Background */
-.ocean-background {
+/* Background sederhana tanpa efek */
+.simple-background {
   position: absolute;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
   z-index: 1;
-}
-
-.wave-bg-chat {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 20%;
-  overflow: hidden;
-}
-
-.wave-chat {
-  position: absolute;
-  width: 200%;
-  height: 100%;
-  background: rgba(255,255,255,0.1);
-  border-radius: 45%;
-  animation: waveMoveChat 10s infinite linear;
-}
-
-#wave1-chat { bottom: 0; animation-delay: 0s; }
-#wave2-chat { bottom: 8px; animation-delay: 5s; opacity: 0.3; }
-
-@keyframes waveMoveChat {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-/* Bubble Animations */
-.bubble-background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-}
-
-.chat-bubble {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  animation: floatBubble 25s infinite linear;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.bubble1 { width: 15px; height: 15px; left: 10%; animation-duration: 20s; }
-.bubble2 { width: 8px; height: 8px; left: 25%; animation-duration: 18s; animation-delay: 3s; }
-.bubble3 { width: 12px; height: 12px; left: 45%; animation-duration: 22s; animation-delay: 7s; }
-.bubble4 { width: 10px; height: 10px; left: 65%; animation-duration: 16s; animation-delay: 2s; }
-.bubble5 { width: 6px; height: 6px; left: 85%; animation-duration: 19s; animation-delay: 5s; }
-
-@keyframes floatBubble {
-  0% {
-    transform: translateY(100vh) scale(0.2);
-    opacity: 0;
-  }
-  10% { opacity: 0.2; }
-  90% { opacity: 0.1; }
-  100% {
-    transform: translateY(-150px) scale(1);
-    opacity: 0;
-  }
 }
 
 /* Chat Card - Lebih Kecil */
@@ -206,7 +145,7 @@
   }
 }
 
-/* Header dengan Bubbles */
+/* Header sederhana tanpa bubbles */
 .chat-header {
   background: linear-gradient(135deg, #0077b6 0%, #0096c7 100%);
   color: white;
@@ -219,53 +158,21 @@
   overflow: hidden;
 }
 
-.chat-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-  animation: shimmer 4s infinite;
-}
-
 .header-content {
   flex: 1;
 }
 
-.title-with-bubbles {
+.title-simple {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 5px;
 }
 
-.title-with-bubbles h3 {
+.title-simple h3 {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-}
-
-.header-bubbles {
-  display: flex;
-  gap: 3px;
-}
-
-.mini-bubble {
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  animation: bubblePulse 2s infinite;
-}
-
-.mini-bubble:nth-child(2) { animation-delay: 0.3s; }
-.mini-bubble:nth-child(3) { animation-delay: 0.6s; }
-
-@keyframes bubblePulse {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.3); opacity: 1; }
 }
 
 .header-info {
@@ -286,13 +193,6 @@
   height: 5px;
   background: #4ade80;
   border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-.typing-indicator {
-  font-size: 0.7rem;
-  opacity: 0.8;
-  font-style: italic;
 }
 
 .user-section {
@@ -366,7 +266,6 @@
   font-size: 2.5rem;
   margin-bottom: 12px;
   opacity: 0.5;
-  animation: float 3s ease-in-out infinite;
 }
 
 .empty-chat p {
@@ -381,28 +280,17 @@
   opacity: 0.7;
 }
 
-/* Message Bubbles dengan Efek Air */
+/* Message Bubbles sederhana */
 .message-bubble {
   max-width: 70%;
   margin: 5px 0;
   border-radius: 16px;
-  animation: messageAppear 0.4s ease;
   position: relative;
   transition: all 0.3s ease;
 }
 
 .message-bubble:hover {
   transform: translateY(-1px);
-}
-
-.bubble-decoration {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  top: 8px;
-  right: 8px;
 }
 
 .mine {
@@ -455,36 +343,12 @@
   line-height: 1.3;
 }
 
-/* Input Area dengan Bubbles */
+/* Input Area sederhana */
 .chat-input-container {
   position: relative;
   background: rgba(255, 255, 255, 0.9);
   padding: 10px 15px;
   border-top: 1px solid rgba(202, 240, 248, 0.5);
-}
-
-.input-bubbles {
-  position: absolute;
-  top: -8px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-around;
-}
-
-.input-bubble {
-  width: 6px;
-  height: 6px;
-  background: rgba(0, 180, 216, 0.3);
-  border-radius: 50%;
-  animation: inputBubble 3s infinite;
-}
-
-.input-bubble:nth-child(2) { animation-delay: 1.5s; }
-
-@keyframes inputBubble {
-  0%, 100% { transform: translateY(0); opacity: 0.3; }
-  50% { transform: translateY(-3px); opacity: 0.6; }
 }
 
 .chat-input {
@@ -534,52 +398,10 @@
   box-shadow: 0 4px 12px rgba(0, 180, 216, 0.4);
 }
 
-.send-btn.active {
-  animation: sendPulse 2s infinite;
-}
-
 .send-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
-}
-
-.send-icon {
-  position: relative;
-  z-index: 2;
-  font-size: 0.9rem;
-}
-
-.send-bubble {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  top: 8px;
-  right: 8px;
-  animation: sendBubble 1.5s infinite;
-}
-
-@keyframes sendPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-@keyframes sendBubble {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.3); opacity: 1; }
-}
-
-@keyframes messageAppear {
-  from { 
-    opacity: 0; 
-    transform: translateY(8px) scale(0.95); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) scale(1); 
-  }
 }
 
 /* Responsif */
@@ -600,7 +422,7 @@
     padding: 12px 15px;
   }
   
-  .title-with-bubbles h3 {
+  .title-simple h3 {
     font-size: 1rem;
   }
   

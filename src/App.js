@@ -10,9 +10,7 @@ function App() {
   const [text, setText] = useState('');
   const [messages, setMessages] = useState([]);
   const [onlineCount, setOnlineCount] = useState(1);
-  const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
 
   useEffect(function () {
     socket.on('connect', function () {
@@ -35,30 +33,11 @@ function App() {
       setOnlineCount(count);
     });
 
-    socket.on('typing', function (data) {
-      setIsTyping(true);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-      typingTimeoutRef.current = setTimeout(() => {
-        setIsTyping(false);
-      }, 2000);
-    });
-
-    socket.on('stop typing', function () {
-      setIsTyping(false);
-    });
-
     return function cleanup() {
       socket.off('connect');
       socket.off('pesan lama');
       socket.off('chat message');
       socket.off('user count');
-      socket.off('typing');
-      socket.off('stop typing');
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
     };
   }, []);
 
@@ -79,12 +58,11 @@ function App() {
     if (text.trim()) {
       const msg = { 
         username: username, 
-        message: text, // ✅ GANTI 'text' MENJADI 'message' (sinkron backend)
+        message: text,
       };
       console.log('Mengirim pesan:', msg);
       socket.emit('chat message', msg);
       setText('');
-      socket.emit('stop typing');
     }
   }
 
@@ -96,12 +74,6 @@ function App() {
 
   function handleInputChange(e) {
     setText(e.target.value);
-    
-    if (e.target.value.trim()) {
-      socket.emit('typing', username);
-    } else {
-      socket.emit('stop typing');
-    }
   }
 
   // Halaman Login 🌊
@@ -131,39 +103,19 @@ function App() {
   // Halaman Chat 🏖️
   return (
     React.createElement('div', { className: 'chat-page' },
-      React.createElement('div', { className: 'ocean-background' },
-        React.createElement('div', { className: 'wave-bg-chat' },
-          React.createElement('div', { className: 'wave-chat', id: 'wave1-chat' }),
-          React.createElement('div', { className: 'wave-chat', id: 'wave2-chat' })
-        ),
-        React.createElement('div', { className: 'bubble-background' },
-          React.createElement('div', { className: 'chat-bubble bubble1' }),
-          React.createElement('div', { className: 'chat-bubble bubble2' }),
-          React.createElement('div', { className: 'chat-bubble bubble3' }),
-          React.createElement('div', { className: 'chat-bubble bubble4' }),
-          React.createElement('div', { className: 'chat-bubble bubble5' })
-        )
-      ),
+      React.createElement('div', { className: 'simple-background' }),
       
       React.createElement('div', { className: 'chat-card' },
         React.createElement('div', { className: 'chat-header' },
           React.createElement('div', { className: 'header-content' },
             React.createElement('div', { className: 'header-title' },
-              React.createElement('div', { className: 'title-with-bubbles' },
-                React.createElement('h3', null, '🏖️ SeaChat'),
-                React.createElement('div', { className: 'header-bubbles' },
-                  React.createElement('div', { className: 'mini-bubble' }),
-                  React.createElement('div', { className: 'mini-bubble' }),
-                  React.createElement('div', { className: 'mini-bubble' })
-                )
+              React.createElement('div', { className: 'title-simple' },
+                React.createElement('h3', null, '🏖️ SeaChat')
               ),
               React.createElement('div', { className: 'header-info' },
                 React.createElement('div', { className: 'online-indicator' },
                   React.createElement('div', { className: 'pulse-dot' }),
                   React.createElement('span', null, onlineCount + ' online')
-                ),
-                React.createElement('div', { className: 'typing-indicator' },
-                  isTyping ? 'Someone is typing...' : ''
                 )
               )
             )
@@ -193,7 +145,6 @@ function App() {
                 key: i,
                 className: mine ? 'message-bubble mine' : 'message-bubble other'
               },
-                React.createElement('div', { className: 'bubble-decoration' }),
                 React.createElement('div', { className: 'message-content' },
                   React.createElement('div', { className: 'message-header' },
                     React.createElement('span', { className: 'sender' }, mine ? 'You' : msg.username),
@@ -201,7 +152,7 @@ function App() {
                       msg.timestamp || new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     )
                   ),
-                  React.createElement('p', { className: 'message-text' }, msg.message || msg.text) // ✅ SUPPORT BOTH
+                  React.createElement('p', { className: 'message-text' }, msg.message || msg.text)
                 )
               );
             }),
@@ -209,10 +160,6 @@ function App() {
         ),
         
         React.createElement('div', { className: 'chat-input-container' },
-          React.createElement('div', { className: 'input-bubbles' },
-            React.createElement('div', { className: 'input-bubble' }),
-            React.createElement('div', { className: 'input-bubble' })
-          ),
           React.createElement('div', { className: 'chat-input' },
             React.createElement('input', {
               type: 'text',
@@ -226,15 +173,7 @@ function App() {
               className: text.trim() ? 'send-btn active' : 'send-btn',
               disabled: !text.trim()
             }, 
-              text.trim() ? 
-                React.createElement('div', { className: 'send-icon' },
-                  React.createElement('span', null, '🌊'),
-                  React.createElement('div', { className: 'send-bubble' })
-                )
-                : 
-                React.createElement('div', { className: 'send-icon' },
-                  React.createElement('span', null, '🐚')
-                )
+              text.trim() ? '🌊' : '🐚'
             )
           )
         )
