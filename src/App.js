@@ -1,8 +1,50 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import io from 'socket.io-client';
 import './App.css';
 
 const socket = io('backendchatweb-production.up.railway.app');
+
+const ChatMessages = memo(({ messages, username, chatEndRef }) => {
+  // hanya render 50 pesan terakhir untuk meringankan DOM
+  const visibleMessages = messages.slice(-50);
+
+  return (
+    <div className="chat-box">
+      {visibleMessages.length === 0 ? (
+        <div className="empty-chat">
+          <div className="empty-icon">🌊</div>
+          <p>Start the conversation!</p>
+          <span>Send your first message below</span>
+        </div>
+      ) : (
+        visibleMessages.map((msg, i) => {
+          const mine = msg.username === username;
+          return (
+            <div
+              key={i}
+              className={mine ? 'message-bubble mine' : 'message-bubble other'}
+            >
+              <div className="message-content">
+                <div className="message-header">
+                  <span className="sender">{mine ? 'You' : msg.username}</span>
+                  <span className="time">
+                    {msg.timestamp ||
+                      new Date(msg.time).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                  </span>
+                </div>
+                <p className="message-text">{msg.message || msg.text}</p>
+              </div>
+            </div>
+          );
+        })
+      )}
+      <div ref={chatEndRef} />
+    </div>
+  );
+});
 
 function App() {
   const [username, setUsername] = useState('');
@@ -12,28 +54,15 @@ function App() {
   const [onlineCount, setOnlineCount] = useState(1);
   const chatEndRef = useRef(null);
 
-  useEffect(function () {
-    socket.on('connect', function () {
-      console.log('connected to server');
-    });
+  useEffect(() => {
+    socket.on('connect', () => console.log('connected to server'));
+    socket.on('pesan lama', (msgs) => setMessages(msgs || []));
+    socket.on('chat message', (msg) =>
+      setMessages((prev) => [...prev, msg])
+    );
+    socket.on('user count', (count) => setOnlineCount(count));
 
-    socket.on('pesan lama', function (msgs) {
-      console.log('Menerima pesan lama:', msgs);
-      setMessages(msgs);
-    });
-
-    socket.on('chat message', function (msg) {
-      console.log('Menerima pesan baru:', msg);
-      setMessages(function (prev) { 
-        return [...prev, msg]; 
-      });
-    });
-
-    socket.on('user count', function (count) {
-      setOnlineCount(count);
-    });
-
-    return function cleanup() {
+    return () => {
       socket.off('connect');
       socket.off('pesan lama');
       socket.off('chat message');
@@ -41,144 +70,115 @@ function App() {
     };
   }, []);
 
-  useEffect(function () {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (chatEndRef.current) {
+        chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+    return () => clearTimeout(timeout);
   }, [messages]);
 
-  function handleLogin() {
+  const handleLogin = useCallback(() => {
     if (username.trim()) {
       setIsLogged(true);
       socket.emit('user joined', username);
     }
-  }
+  }, [username]);
 
-  function sendMessage() {
+  const sendMessage = useCallback(() => {
     if (text.trim()) {
-      const msg = { 
-        username: username, 
-        message: text,
-      };
-      console.log('Mengirim pesan:', msg);
+      const msg = { username, message: text };
       socket.emit('chat message', msg);
       setText('');
     }
-  }
+  }, [text, username]);
 
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  }
+  const handleInputChange = useCallback((e) => setText(e.target.value), []);
+  const handleKeyDown = useCallback(
+    (e) => e.key === 'Enter' && sendMessage(),
+    [sendMessage]
+  );
 
-  function handleInputChange(e) {
-    setText(e.target.value);
-  }
-
-  // Halaman Login 🌊
   if (!isLogged) {
     return (
-      React.createElement('div', { className: 'login-page' },
-        React.createElement('div', { className: 'login-box-sea' },
-          React.createElement('h1', null, '🌊 SeaChat'),
-          React.createElement('p', null, 'Masuk dan ngobrol di pantai!'),
-          React.createElement('input', {
-            type: 'text',
-            placeholder: 'Masukkan nama kamu...',
-            value: username,
-            onChange: function (e) { setUsername(e.target.value); },
-            onKeyDown: function (e) { if (e.key === 'Enter') handleLogin(); }
-          }),
-          React.createElement('button', { onClick: handleLogin }, 'Mulai Chat 🐚')
-        ),
-        React.createElement('div', { className: 'wave-bg' },
-          React.createElement('div', { className: 'wave', id: 'wave1' }),
-          React.createElement('div', { className: 'wave', id: 'wave2' })
-        )
-      )
+      <div className="login-page">
+        <div className="login-box-sea">
+          <h1>🌊 SeaChat</h1>
+          <p>Masuk dan ngobrol di pantai!</p>
+          <input
+            type="text"
+            placeholder="Masukkan nama kamu..."
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+          />
+          <button onClick={handleLogin}>Mulai Chat 🐚</button>
+        </div>
+        <div className="wave-bg">
+          <div className="wave" id="wave1" />
+          <div className="wave" id="wave2" />
+        </div>
+      </div>
     );
   }
 
-  // Halaman Chat 🏖️
   return (
-    React.createElement('div', { className: 'chat-page' },
-      React.createElement('div', { className: 'simple-background' }),
-      
-      React.createElement('div', { className: 'chat-card' },
-        React.createElement('div', { className: 'chat-header' },
-          React.createElement('div', { className: 'header-content' },
-            React.createElement('div', { className: 'header-title' },
-              React.createElement('div', { className: 'title-simple' },
-                React.createElement('h3', null, '🏖️ SeaChat')
-              ),
-              React.createElement('div', { className: 'header-info' },
-                React.createElement('div', { className: 'online-indicator' },
-                  React.createElement('div', { className: 'pulse-dot' }),
-                  React.createElement('span', null, onlineCount + ' online')
-                )
-              )
-            )
-          ),
-          React.createElement('div', { className: 'user-section' },
-            React.createElement('div', { className: 'user-avatar' }, 
-              username.charAt(0).toUpperCase()
-            ),
-            React.createElement('div', { className: 'user-info' },
-              React.createElement('span', { className: 'user-greeting' }, 'Hello,'),
-              React.createElement('span', { className: 'username-display' }, username)
-            )
-          )
-        ),
-        
-        React.createElement('div', { className: 'chat-box' },
-          messages.length === 0 ? 
-            React.createElement('div', { className: 'empty-chat' },
-              React.createElement('div', { className: 'empty-icon' }, '🌊'),
-              React.createElement('p', null, 'Start the conversation!'),
-              React.createElement('span', null, 'Send your first message below')
-            )
-            :
-            messages.map(function (msg, i) {
-              const mine = msg.username === username;
-              return React.createElement('div', {
-                key: i,
-                className: mine ? 'message-bubble mine' : 'message-bubble other'
-              },
-                React.createElement('div', { className: 'message-content' },
-                  React.createElement('div', { className: 'message-header' },
-                    React.createElement('span', { className: 'sender' }, mine ? 'You' : msg.username),
-                    React.createElement('span', { className: 'time' }, 
-                      msg.timestamp || new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    )
-                  ),
-                  React.createElement('p', { className: 'message-text' }, msg.message || msg.text)
-                )
-              );
-            }),
-          React.createElement('div', { ref: chatEndRef })
-        ),
-        
-        React.createElement('div', { className: 'chat-input-container' },
-          React.createElement('div', { className: 'chat-input' },
-            React.createElement('input', {
-              type: 'text',
-              placeholder: 'Type a message...',
-              value: text,
-              onChange: handleInputChange,
-              onKeyDown: handleKeyDown
-            }),
-            React.createElement('button', { 
-              onClick: sendMessage,
-              className: text.trim() ? 'send-btn active' : 'send-btn',
-              disabled: !text.trim()
-            }, 
-              text.trim() ? '🌊' : '🐚'
-            )
-          )
-        )
-      )
-    )
+    <div className="chat-page">
+      <div className="simple-background" />
+
+      <div className="chat-card">
+        <div className="chat-header">
+          <div className="header-content">
+            <div className="header-title">
+              <div className="title-simple">
+                <h3>🏖️ SeaChat</h3>
+              </div>
+              <div className="header-info">
+                <div className="online-indicator">
+                  <div className="pulse-dot" />
+                  <span>{onlineCount} online</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="user-section">
+            <div className="user-avatar">
+              {username.charAt(0).toUpperCase()}
+            </div>
+            <div className="user-info">
+              <span className="user-greeting">Hello,</span>
+              <span className="username-display">{username}</span>
+            </div>
+          </div>
+        </div>
+
+        <ChatMessages
+          messages={messages}
+          username={username}
+          chatEndRef={chatEndRef}
+        />
+
+        <div className="chat-input-container">
+          <div className="chat-input">
+            <input
+              type="text"
+              placeholder="Type a message..."
+              value={text}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+            />
+            <button
+              onClick={sendMessage}
+              className={text.trim() ? 'send-btn active' : 'send-btn'}
+              disabled={!text.trim()}
+            >
+              {text.trim() ? '🌊' : '🐚'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
