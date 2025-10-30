@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Admin Panel - Chat</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;padding:20px}
+    h1{font-size:20px}
+    .user{display:flex;gap:8px;align-items:center;margin:6px 0;padding:8px;border:1px solid #ddd;border-radius:6px}
+    button{padding:6px 10px;border-radius:6px;border:1px solid #888;background:white;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h1>Admin Panel — Chat</h1>
+  <p>Masukkan ADMIN_KEY dan tekan Refresh users.</p>
+  <div>
+    <label>Server URL: <input id="server" value="http://localhost:3000"/></label><br/><br/>
+    <label>Admin Key: <input id="key" type="password" /></label>
+    <button id="refresh">Refresh users</button>
+    <div id="users"></div>
+  </div>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script>
+const usersDiv = document.getElementById('users');
+const refreshBtn = document.getElementById('refresh');
+const serverInput = document.getElementById('server');
+const keyInput = document.getElementById('key');
+
+function api(path, opts){
+  const url = serverInput.value.replace(/\/$/,'') + '/admin' + path;
+  const headers = {'Content-Type':'application/json'};
+  const key = keyInput.value;
+  if (key) headers['x-admin-key'] = key;
+  return fetch(url, Object.assign({headers, credentials:'omit'}, opts));
+}
+
+refreshBtn.onclick = async ()=>{
+  usersDiv.innerHTML = 'loading...';
+  try {
+    const res = await api('/users', { method: 'GET' });
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const j = await res.json();
+    usersDiv.innerHTML = '';
+    (j.users||[]).forEach(u=>{
+      const el = document.createElement('div');
+      el.className='user';
+      el.innerHTML = '<div><strong>'+ (u.username||'—') +'</strong><div style="font-size:12px;color:#666">id: '+u.socketId+'</div></div>';
+      const btn = document.createElement('button');
+      btn.textContent='Kick';
+      btn.onclick = async ()=>{
+        if (!confirm('Kick '+(u.username||u.socketId)+' ?')) return;
+        const k = await api('/kick',{method:'POST', body: JSON.stringify({ socketId: u.socketId })});
+        if (!k.ok) {
+          alert('Gagal: '+(await k.text()));
+        } else {
+          alert('Berhasil.');
+          refreshBtn.click();
+        }
+      };
+      el.appendChild(btn);
+      usersDiv.appendChild(el);
+    });
+  } catch(e){
+    usersDiv.innerHTML = 'Error: '+e.message;
+  }
+};
+</script>
+</body>
+</html>

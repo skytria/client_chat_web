@@ -60,13 +60,13 @@ function App() {
     socket.on('chat message', (msg) =>
       setMessages((prev) => [...prev, msg])
     );
-    socket.on('user count', (count) => setOnlineCount(count));
+    socket.on('online user', (data) => setOnlineCount(data.count));
 
     return () => {
       socket.off('connect');
       socket.off('pesan lama');
       socket.off('chat message');
-      socket.off('user count');
+      socket.off('online user');
     };
   }, []);
 
